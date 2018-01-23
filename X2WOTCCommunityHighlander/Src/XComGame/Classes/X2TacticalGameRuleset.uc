@@ -2212,6 +2212,7 @@ simulated state CreateTacticalGame
 		EventManager.RegisterForEvent(ThisObject, 'TileDataChanged', HandleAdditionalFalling, ELD_OnStateSubmitted);
 
 		// allow templated event handlers to register themselves
+		`log("registering event handlers");
 		class'X2EventListenerTemplateManager'.static.RegisterTacticalListeners();
 	}
 	
@@ -2478,6 +2479,10 @@ simulated state CreateTacticalGame
 		local XComGameState StartState;
 		local int StartStateIndex;
 
+		// Variables for Issue #144
+		local array<X2DownloadableContentInfo> DLCInfos;
+		local int i;
+
 		StartState = CachedHistory.GetStartState();
 		if (StartState == none)
 		{
@@ -2504,7 +2509,16 @@ simulated state CreateTacticalGame
 		StartStateCreateXpManager(StartState);
 		StartStateInitializeUnitAbilities(StartState);      //Examine each unit's start state, and add ability state objects as needed
 		//*************************************************************************
-
+		
+		// Issue #144
+		// Event Listeners aren't functioning at this point in initialisation,
+		// so we use DownloadableContent classes instead
+		DLCInfos = `ONLINEEVENTMGR.GetDLCInfos(false);
+		for(i = 0; i < DLCInfos.Length; ++i)
+		{
+			DLCInfos[i].AddToTacticalStartState(StartState);
+		}
+		// End Issue #144
 
 		// build the initiative order
 		BuildInitiativeOrder(StartState);
@@ -4166,6 +4180,12 @@ simulated state TurnPhase_UnitActions
 		local bool bResumeFromInterruptedInitiative, bBeginInterruptedInitiative;
 		local StateObjectReference PreviousPlayerRef, PreviousUnitActionRef;
 
+		// Start Issue #144
+		// Let mods interject before the initiative turn if they need to
+		`log("NextInitiativeGroup triggering");
+		`XEVENTMGR.TriggerEvent('NextInitiativeGroup', none, none);
+		// End Issue #144
+
 		NewBattleData = XComGameState_BattleData(CachedHistory.GetGameStateForObjectID(CachedBattleDataRef.ObjectID));
 
 		PreviousPlayerRef = GetCachedUnitActionPlayerRef();
@@ -4638,6 +4658,12 @@ Begin:
 			`SETLOC("Waiting for Visualizer: 1");
 			sleep(0.0);
 		}
+
+		// Start Issue #144
+		// Let mods interject before the initiative turn if they need to
+		`log("StartOfTacticalActionTurn triggering");
+		`XEVENTMGR.TriggerEvent('StartOfTacticalActionTurn', none, none);
+		// End Issue #144
 
 		// autosave after the visualizer finishes doing it's thing and control is being handed over to the player. 
 		// This guarantees that any pre-turn behavior tree or other ticked decisions have completed modifying the history.

@@ -321,3 +321,16 @@ static function bool GetDLCEventInfo(out array<HQEvent> arrEvents)
 	return false; //returning true will tell the game to add the events have been added to the above array
 }
 //end issue #112
+
+//start Issue #144
+/// <summary>
+/// Called from X2TacticalGameRuleset
+/// lets mods add to and work with the tactical start state, immediately after
+/// units are added and initialized
+/// </summary>
+
+static function AddToTacticalStartState(XComGameState StartState)
+{
+	// return nothing
+}
+//end issue #144
