@@ -889,6 +889,9 @@ private function AddRisk(X2CovertActionRiskTemplate RiskTemplate, bool bChosenIn
 	Risks.AddItem(NewRisk);
 }
 
+// start CHL issue #434
+// CHL function modified: first parameter changed from "int ChanceToOccur" to "CovertActionRisk ActionRisk"
+// also added event 'CovertActionRisk_AlterChanceModifier' to allow mod interation
 private function int CalculateRiskChanceToOccurModifiers(CovertActionRisk ActionRisk, bool bChosenIncreaseRisks, bool bDarkEventRisk)
 {
 	local int ChanceToOccurModifier;
@@ -916,9 +919,12 @@ private function int CalculateRiskChanceToOccurModifiers(CovertActionRisk Action
 
 	`XEVENTMGR.TriggerEvent('CovertActionRisk_AlterChanceModifier', Tuple, self);
 
+
+
 	return Tuple.Data[4].i;
 }
 
+// CHL fuction added: to calculate risk chance on all risks for a given covert action
 function RecalculateRiskChanceToOccurModifiers()
 {
 	local XComGameState_HeadquartersResistance ResHQ;
@@ -943,10 +949,12 @@ function RecalculateRiskChanceToOccurModifiers()
             }
 		}
 
-		CalculateRiskChanceToOccurModifiers(Risk, bChosenIncreaseRisks, bDarkEventRisk);
+		Risk.ChanceToOccurModifier = CalculateRiskChanceToOccurModifiers(Risk, bChosenIncreaseRisks, bDarkEventRisk);
 	}
 }
 
+// CHL function modified: added event 'AllowDarkEventRisk' to allow mods to modify the logic
+// that determines whether or not Risk is applied to covert action
 function EnableDarkEventRisk(name DarkEventRiskName)
 {
 	local X2StrategyElementTemplateManager StratMgr;
@@ -979,7 +987,7 @@ function EnableDarkEventRisk(name DarkEventRiskName)
 		// If the Risk is not a part of the default template, add it
 		if (RiskNames.Find(DarkEventRiskName) == INDEX_NONE)
 		{
-			AddRisk(X2CovertActionRiskTemplate(Tuple.Data[0].o), bChosenIncreaseRisks, true);
+			AddRisk(RiskTemplate, bChosenIncreaseRisks, true);
 		}
 		else // Otherwise search through the existing risks to modify the chance to occur
 		{
@@ -998,6 +1006,7 @@ function EnableDarkEventRisk(name DarkEventRiskName)
 		}
 	}
 }
+// end CHL issue #434
 
 function DisableDarkEventRisk(name DarkEventRiskName)
 {
