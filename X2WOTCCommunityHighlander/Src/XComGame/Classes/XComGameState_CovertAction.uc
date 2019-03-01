@@ -570,6 +570,8 @@ private function GenerateRewards(XComGameState NewGameState)
 	}
 }
 
+// start CHL issue #438
+// CHL function modified: added event 'CovertAction_PreventGiveRewards'
 function GiveRewards(XComGameState NewGameState)
 {
 	local XComGameState_Reward RewardState;
@@ -580,12 +582,12 @@ function GiveRewards(XComGameState NewGameState)
 	local int idx;
 
 	Tuple = new class'XComLWTuple';
-	Tuple.Id = 'CovertAction_ShouldGiveRewards';
+	Tuple.Id = 'CovertAction_PreventGiveRewards';
 	Tuple.Data.Add(1);
 	Tuple.Data[0].kind = XComLWTVBool;
 	Tuple.Data[0].b = false;
 
-	`XEVENTMGR.TriggerEvent('CovertAction_ModifyNarrativeParamTag', Tuple, self);
+	`XEVENTMGR.TriggerEvent('CovertAction_PreventGiveRewards', Tuple, self);
 
 	if (Tuple.Data[0].b)
 	{
@@ -636,6 +638,7 @@ function GiveRewards(XComGameState NewGameState)
 		}
 	}
 }
+// end CHL issue #438
 
 //---------------------------------------------------------------------------------------
 function string GetRewardDescriptionString()
@@ -1482,6 +1485,8 @@ function CompleteCovertAction(XComGameState NewGameState)
 //----------------   GEOSCAPE ENTITY IMPLEMENTATION   -----------------------------------------
 //#############################################################################################
 
+// start CHL issue #438
+// CHL function modified: added event 'CovertAction_CanInteract'
 protected function bool CanInteract()
 {
 	local XComLWTuple Tuple;
@@ -1496,6 +1501,7 @@ protected function bool CanInteract()
 	
 	return Tuple.Data[0].b;
 }
+// end CHL issue #438
 
 function string GetObjective()
 {
@@ -1527,31 +1533,27 @@ function string GetImage()
 	return GetMyNarrativeTemplate().ActionImage;
 }
 
+// start CHL issue #438
+// CHL function modified: added event 'CovertAction_ModifyNarrativeParamTag'
 function string GetNarrative()
 {
 	local XComGameState_ResistanceFaction FactionState;
-	local XComLWTuple Tuple;
 	local XGParamTag kTag;
 
-	Tuple = new class'XComLWTuple';
-	Tuple.Id = 'CovertAction_ModifyNarrativeParamTag';
-	Tuple.Data.Add(1);
-	Tuple.Data[0].kind = XComLWTVString;
-	Tuple.Data[0].s = GetRewardSavedString();
-
 	FactionState = GetFaction();
-
-	`XEVENTMGR.TriggerEvent('CovertAction_ModifyNarrativeParamTag', Tuple, self);
 
 	kTag = XGParamTag(`XEXPANDCONTEXT.FindTag("XGParam"));
 	kTag.StrValue0 = FactionState.GetFactionName();
 	kTag.StrValue1 = FactionState.GetRivalChosen().GetChosenName();
 	kTag.StrValue2 = FactionState.GetRivalChosen().GetChosenClassName();
 	kTag.StrValue3 = GetContinent().GetMyTemplate().DisplayName;
-	kTag.StrValue4 = Tuple.Data[0].s;
+	kTag.StrValue4 = GetRewardSavedString();
+
+	`XEVENTMGR.TriggerEvent('CovertAction_ModifyNarrativeParamTag', kTag, self);
 
 	return `XEXPAND.ExpandString(GetMyNarrativeTemplate().ActionPreNarrative);
 }
+// end CHL issue #438
 
 function string GetSummary()
 {
@@ -1728,6 +1730,8 @@ simulated function string GetUIButtonTooltipBody()
 	return toolTip;
 }
 
+// start CHL issue #438
+// CHL function modified: added event 'CovertAction_ShouldBeVisible'
 function bool ShouldBeVisible()
 {
 	local XComLWTuple Tuple;
@@ -1742,6 +1746,7 @@ function bool ShouldBeVisible()
 
 	return Tuple.Data[0].b;
 }
+// end CHL issue #438
 
 function bool ShouldStaffSlotBeDisplayed(int idx)
 {
@@ -2206,6 +2211,8 @@ simulated function TriggerNextCovertActionPopup()
 	`HQPRES.UINextCovertAction();
 }
 
+// start CHL issue #438
+// CHL function modified: added event 'CovertAction_RemoveEntity_ShouldEmptySlots'
 function RemoveEntity(XComGameState NewGameState)
 {
 	local XComGameState_ResistanceFaction FactionState;
@@ -2256,6 +2263,7 @@ function RemoveEntity(XComGameState NewGameState)
 		`XCOMGAME.GameRuleset.SubmitGameState(NewGameState);
 	}
 }
+// end CHL issue #438
 
 function AttemptSelectionCheckInterruption()
 {
@@ -2266,25 +2274,31 @@ function AttemptSelectionCheckInterruption()
 
 protected function bool DisplaySelectionPrompt()
 {
+	ActionSelected();
+
+	return true;
+}
+
+// start CHL issue #438
+// CHL function modified: added event 'CovertAction_ActionSelectedOverride'
+function ActionSelected()
+{
 	local XComLWTuple Tuple;
 
 	Tuple = new class'XComLWTuple';
 	Tuple.Id = 'CovertAction_ActionSelectedOverride';
 	Tuple.Data.Add(1);
 	Tuple.Data[0].kind = XComLWTVBool;
-	Tuple.Data[0].b = true;
-
-	ActionSelected();
+	Tuple.Data[0].b = false;
 
 	`XEVENTMGR.TriggerEvent('CovertAction_ActionSelectedOverride', Tuple, self);
 
-	return Tuple.Data[0].b;
+	if (!Tuple.Data[0].b)
+	{
+		`HQPRES.OnCovertActionSelected(self);
+	}
 }
-
-function ActionSelected()
-{
-	`HQPRES.OnCovertActionSelected(self);
-}
+// end CHL issue #438
 
 //#############################################################################################
 //----------------   HELPER FUNCTIONS   -------------------------------------------------------
