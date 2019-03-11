@@ -38,6 +38,7 @@ All notable changes to Vanilla 'War Of The Chosen' Behaviour will be documented 
 - Triggers the event `CovertAction_ModifyNarrativeParamTag` on XComGameState_CovertAction::GetNarrative call (#438)
 - Triggers the event `UIStrategyPolicy_ScreenInit` at the end of UIStrategyPolicy::InitScreen (#440)
 - Triggers the event `UIStrategyPolicy_ShowCovertActionsOnClose` on UIStrategyPolicy::CloseScreen call (#440)
+- Triggers the event `CustomizeStatusStringsSeparate` in XComGameState_Unit::GetStatusStringsSeparate (#322)
 
 ### Modding Exposures
 - Allows mods to add custom items to the Avenger Shortcuts (#163)
