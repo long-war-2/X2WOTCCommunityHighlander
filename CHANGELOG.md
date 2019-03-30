@@ -88,6 +88,9 @@ All notable changes to Vanilla 'War Of The Chosen' Behaviour will be documented 
 - `OverrideHackingScreenType` and `HackIn2D` to allow hacking using a 2D movie and using
   the Skulljack / ADVENT screen arbitrarily (#330)
 - `PostMissionObjectivesSpawned` to allow for map manipulation before units are spawned  (#405)
+- `OverrideObjectiveAbilityIconColor` provides a tuple with the same ID as the
+  event and data of the form `[bool overrideColor?, string color]` that allows
+  mods to override the color of soldier abilities in the tactical HUD (#400)
 
 ### Configuration
 - Added ability to modify default spawn size (#18)
