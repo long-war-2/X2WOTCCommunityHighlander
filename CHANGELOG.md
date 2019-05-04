@@ -130,6 +130,10 @@ All notable changes to Vanilla 'War Of The Chosen' Behaviour will be documented 
   mods to override the color of soldier abilities in the tactical HUD (#400)
 - 'DrawDebugLabels' allows mods to draw their own debug information on the canvas used by
   `XComTacticalController.DrawDebugLabels()` (#490)
+- `OverrideEncounterZoneAnchorPoint` allows mods to override the anchor point used by XCOM 2
+  in determining patrol zones for pods (#500)
+- 'OverridePatrolBehavior' allows mods to disable the base game pod patrol logic if they
+  want to handle it themselves (#507)
 
 ### Configuration
 - Added ability to modify default spawn size (#18)
@@ -181,6 +185,8 @@ All notable changes to Vanilla 'War Of The Chosen' Behaviour will be documented 
   their damage with psi flyovers (Psi Bomb, mod abilities) (#326)
 - Fix `X2AbilityToHitCalc_StandardAim` discarding unfavorable (for XCOM) changes
   to hit results from effects (#426)
+- Fix patrol logic when corners of a patrol zone lie outside of the map edges and
+  a pod tries to patrol to any of them (#508)
 
 
 ## Miscellaneous
