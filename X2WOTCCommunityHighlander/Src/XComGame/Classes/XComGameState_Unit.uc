@@ -11902,6 +11902,9 @@ function int GetXPValue()
 function int GetTotalNumKills(optional bool bIncludeNonTacticalKills = true)
 {
 	local int NumKills;
+	// LWOTC requires this to override the soldier leveling system
+	local XComLWTuple Tuple;
+	// END
 
 	NumKills = Round(KillCount);
 
@@ -11922,6 +11925,21 @@ function int GetTotalNumKills(optional bool bIncludeNonTacticalKills = true)
 	{
 		NumKills += NonTacticalKills;
 	}
+	
+	// LWOTC requires this to override the soldier leveling system
+	Tuple = new class'XComLWTuple';
+	Tuple.Id = 'GetNumKillsForRankUpSoldier';
+	Tuple.Data.Add(1);
+	Tuple.Data[0].kind = XComLWTVInt;
+	Tuple.Data[0].i = 0;
+
+	//LWS add hook for modifying the number of effective kills for leveling up purposes, accessible by DLCs/mods
+	`XEVENTMGR.TriggerEvent('GetNumKillsForRankUpSoldier', Tuple, self);
+	if (Tuple.Data[0].kind == XComLWTVInt)
+	{
+		NumKills += Tuple.Data[0].i;
+	}
+	// END
 
 	return NumKills;
 }
