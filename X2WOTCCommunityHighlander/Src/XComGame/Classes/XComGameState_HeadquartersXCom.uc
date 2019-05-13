@@ -7919,23 +7919,32 @@ function GetCovertActionEvents(out array<HQEvent> arrEvents)
 	local XComGameState_HeadquartersResistance ResHQ;
 	local HQEvent kEvent;
 	local bool bActionFound, bRingBuilt;
-
-	local XComLWTuple Tuple; // Issue #391
+	local XComLWTuple Tuple1, Tuple2; // Issue #391, #518
 
 	History = `XCOMHISTORY;
 
 	// Start Issue #391
-	Tuple = new class'XComLWTuple';
- 	Tuple.Id = 'GetCovertActionEvents_Settings';
- 	Tuple.Data.Add(2);
- 	Tuple.Data[0].kind = XComLWTVBool;
- 	Tuple.Data[0].b = false; // AddAll
-	Tuple.Data[1].kind = XComLWTVBool;
- 	Tuple.Data[1].b = false; // InsertSorted
- 
- 	`XEVENTMGR.TriggerEvent('GetCovertActionEvents_Settings', Tuple, self);
+	Tuple1 = new class'XComLWTuple';
+	Tuple1.Id = 'GetCovertActionEvents_Settings';
+	Tuple1.Data.Add(2);
+	Tuple1.Data[0].kind = XComLWTVBool;
+	Tuple1.Data[0].b = false; // AddAll
+	Tuple1.Data[1].kind = XComLWTVBool;
+	Tuple1.Data[1].b = false; // InsertSorted
+	
+	`XEVENTMGR.TriggerEvent('GetCovertActionEvents_Settings', Tuple1, self);
 	// End Issue #391
 	
+	// chl issue #518 start
+	Tuple2 = new class'XComLWTuple';
+	Tuple2.Id = 'ForceNoCovertActionNagFirstMonth';
+	Tuple2.Data.Add(1);
+	Tuple2.Data[0].kind = XComLWTVInt;
+	Tuple2.Data[0].i = 1; // set this to 0 to force nag during first month
+
+	`XEVENTMGR.TriggerEvent('ForceNoCovertActionNagFirstMonth', Tuple2, self);
+	// chl issue #518 end
+
 	foreach History.IterateByClassType(class'XComGameState_CovertAction', ActionState)
 	{
 		if (ActionState.bStarted)
@@ -7947,7 +7956,7 @@ function GetCovertActionEvents(out array<HQEvent> arrEvents)
 			kEvent.bActionEvent = true;
 
 			// Start Issue #391
-			if (!Tuple.Data[1].b)
+			if (!Tuple1.Data[1].b)
 			{
 			// End Issue #391
 				//Add directly to the end of the events list, not sorted by hours. 
@@ -7963,7 +7972,7 @@ function GetCovertActionEvents(out array<HQEvent> arrEvents)
 			bActionFound = true;
 
 			// Start Issue #391
-			if (!Tuple.Data[0].b)
+			if (!Tuple1.Data[0].b)
 			{
 			// End Issue #391
 				break; // We only need to display one Action at a time
@@ -7975,7 +7984,8 @@ function GetCovertActionEvents(out array<HQEvent> arrEvents)
 
 	ResHQ = XComGameState_HeadquartersResistance(History.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersResistance'));
 	bRingBuilt = HasFacilityByName('ResistanceRing');
-	if (!bActionFound && (ResHQ.NumMonths >= 1 || bRingBuilt))
+
+	if (!bActionFound && (ResHQ.NumMonths >= Tuple2.Data[0].i /* chl issue #518 */ || bRingBuilt))
 	{
 		if (bRingBuilt)
 			kEvent.Data = CovertActionsGoToRing;
