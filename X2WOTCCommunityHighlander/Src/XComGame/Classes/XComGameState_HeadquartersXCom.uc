@@ -7912,6 +7912,7 @@ function GetResistanceEvents(out array<HQEvent> arrEvents)
 }
 
 //---------------------------------------------------------------------------------------
+// chl issue #518 start: added tuple & event 'ForceNoCovertActionNagFirstMonth'
 function GetCovertActionEvents(out array<HQEvent> arrEvents)
 {
 	local XComGameStateHistory History;
@@ -7919,9 +7920,15 @@ function GetCovertActionEvents(out array<HQEvent> arrEvents)
 	local XComGameState_HeadquartersResistance ResHQ;
 	local HQEvent kEvent;
 	local bool bActionFound, bRingBuilt;
+	local XComLWTuple Tuple;
 
 	History = `XCOMHISTORY;
-	
+	Tuple = new class'XComLWTuple';
+	Tuple.Id = 'ForceNoCovertActionNagFirstMonth';
+	Tuple.Data.Add(1);
+	Tuple.Data[0].kind = XComLWTVInt;
+	Tuple.Data[0].i = 1;
+
 	foreach History.IterateByClassType(class'XComGameState_CovertAction', ActionState)
 	{
 		if (ActionState.bStarted)
@@ -7940,7 +7947,8 @@ function GetCovertActionEvents(out array<HQEvent> arrEvents)
 
 	ResHQ = XComGameState_HeadquartersResistance(History.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersResistance'));
 	bRingBuilt = HasFacilityByName('ResistanceRing');
-	if (!bActionFound && (ResHQ.NumMonths >= 1 || bRingBuilt))
+
+	if (!bActionFound && (ResHQ.NumMonths >= Tuple.Data[0].i || bRingBuilt))
 	{
 		if (bRingBuilt)
 			kEvent.Data = CovertActionsGoToRing;
@@ -7955,6 +7963,7 @@ function GetCovertActionEvents(out array<HQEvent> arrEvents)
 		arrEvents.AddItem(kEvent);
 	}
 }
+// chl issue #518 end
 
 function bool HasSoldierUnlockTemplate(name UnlockName)
 {
