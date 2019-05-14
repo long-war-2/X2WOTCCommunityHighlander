@@ -7937,12 +7937,12 @@ function GetCovertActionEvents(out array<HQEvent> arrEvents)
 	
 	// chl issue #518 start
 	Tuple2 = new class'XComLWTuple';
-	Tuple2.Id = 'ForceNoCovertActionNagFirstMonth';
+	Tuple2.Id = 'OverrideNoCaEventMinMonths';
 	Tuple2.Data.Add(1);
 	Tuple2.Data[0].kind = XComLWTVInt;
 	Tuple2.Data[0].i = 1; // set this to 0 to force nag during first month
 
-	`XEVENTMGR.TriggerEvent('ForceNoCovertActionNagFirstMonth', Tuple2, self);
+	`XEVENTMGR.TriggerEvent('OverrideNoCaEventMinMonths', Tuple2, self);
 	// chl issue #518 end
 
 	foreach History.IterateByClassType(class'XComGameState_CovertAction', ActionState)
