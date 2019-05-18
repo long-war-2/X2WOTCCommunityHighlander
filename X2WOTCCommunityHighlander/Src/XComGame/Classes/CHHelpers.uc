@@ -122,6 +122,12 @@ var config array<name> RequiresTargetingActivation;
 var config array<name> AdditionalAmbushRiskTemplates;
 // End Issue #485
 
+// Start Issue #510
+//
+// Sound range for "yelling" to alert enemy units.
+var config int NoiseAlertSoundRange;
+// End Issue #510
+
 // Start Issue #123
 simulated static function RebuildPerkContentCache() {
 	local XComContentManager		Content;
