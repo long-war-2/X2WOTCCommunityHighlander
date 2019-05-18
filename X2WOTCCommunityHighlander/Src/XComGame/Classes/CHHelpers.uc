@@ -149,6 +149,12 @@ var config bool bSkipCampaignIntroMovies;
 var config bool UseTeamSwapFix;
 // End Issue #551
 
+// Start Issue #510
+//
+// Sound range for "yelling" to alert enemy units.
+var config int NoiseAlertSoundRange;
+// End Issue #510
+
 // Start Issue #123
 simulated static function RebuildPerkContentCache() {
 	local XComContentManager		Content;
