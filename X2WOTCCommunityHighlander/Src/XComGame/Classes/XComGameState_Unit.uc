@@ -5178,7 +5178,7 @@ function GetStatusStringsSeparate(out string Status, out string TimeLabel, out i
 		if (Status != "")
 			bProjectExists = true;
 	}
-	else if(IsDead())
+	else if( IsDead() )
 	{
 		Status = "KIA";
 	}
