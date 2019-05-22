@@ -14325,7 +14325,7 @@ function string GetSoldierRankName(optional int Rank = -1)
 	OverrideTuple = TriggerSoldierRankEvent(
 		Rank,
 		'SoldierRankName',
-		class'X2ExperienceConfig'.static.GetRankName(GetRank(), GetSoldierClassTemplateName()));
+		class'X2ExperienceConfig'.static.GetRankName((Rank == -1) ? GetRank() : Rank, GetSoldierClassTemplateName()));
 
 	return OverrideTuple.Data[1].s;
 }
@@ -14350,7 +14350,7 @@ function string GetSoldierShortRankName(optional int Rank = -1)
 	OverrideTuple = TriggerSoldierRankEvent(
 		Rank,
 		'SoldierShortRankName',
-		class'X2ExperienceConfig'.static.GetShortRankName(GetRank(), GetSoldierClassTemplateName()));
+		class'X2ExperienceConfig'.static.GetShortRankName((Rank == -1) ? GetRank() : Rank, GetSoldierClassTemplateName()));
 
 	return OverrideTuple.Data[1].s;
 }
@@ -14375,7 +14375,7 @@ function string GetSoldierRankIcon(optional int Rank = -1)
 	OverrideTuple = TriggerSoldierRankEvent(
 		Rank,
 		'SoldierRankIcon',
-		class'UIUtilities_Image'.static.GetRankIcon(GetRank(), GetSoldierClassTemplateName()));
+		class'UIUtilities_Image'.static.GetRankIcon((Rank == -1) ? GetRank() : Rank, GetSoldierClassTemplateName()));
 
 	return OverrideTuple.Data[1].s;
 }
