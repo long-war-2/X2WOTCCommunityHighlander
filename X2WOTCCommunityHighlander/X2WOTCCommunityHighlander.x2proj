@@ -242,9 +242,6 @@
     <Content Include="Src\XComGame\Classes\UIStrategyMap_HUD.uc">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Src\XComGame\Classes\UIStrategyMap_MissionIcon.uc">
-      <SubType>Content</SubType>
-    </Content>
     <Content Include="Src\XComGame\Classes\UIStrategyPolicy.uc">
       <SubType>Content</SubType>
     </Content>
@@ -438,9 +435,6 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\XComGame\Classes\XComHeadquartersCamera.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="Src\XComGame\Classes\XComHQPresentationLayer.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\XComGame\Classes\XComHumanPawn.uc">
