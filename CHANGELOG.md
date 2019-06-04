@@ -61,6 +61,13 @@ All notable changes to Vanilla 'War Of The Chosen' Behaviour will be documented 
   other ways than just the tooltip and image (#537)
 - Triggers the event `MissionIconSetScanSite` to allow mods to customize a scan site's icon in other
   ways than just the tooltip and image (#537)
+- Triggers the event `PreEndOfMonth` to notify mods that the game is about to start its end-of-month processing (#539)
+- Triggers the event `NegativeMonthlyIncome` to allow mods to override whether negative monthly income is displayed
+  as negative or zero, and do their own processing based on this state (#539)
+- Triggers the event `OverrideSupplyDrop` to allow mods to override the amount of supplies awarded at month end (#539)
+- Triggers the event `OverrideSupplyLossStrings` to allow mods to override the text that is displayed for supplies
+  lost in the monthly resistance report (#539)
+- Triggers the event `PostEndOfMonth` to notify mods that end-of-month processing has come to an end (#539)
 
 ### Modding Exposures
 - Allows mods to add custom items to the Avenger Shortcuts (#163)
