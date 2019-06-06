@@ -171,7 +171,9 @@ All notable changes to Vanilla 'War Of The Chosen' Behaviour will be documented 
   their damage with psi flyovers (Psi Bomb, mod abilities) (#326)
 - Fix `X2AbilityToHitCalc_StandardAim` discarding unfavorable (for XCOM) changes
   to hit results from effects (#426)
-
+- Make sure that rescue rings do not disappear on other rescuable units after a
+  neutral unit swaps to team XCom (behaviour guarded behind CHHelpers.UseTeamSwapFix
+  config var) (#551)
 
 ## Miscellaneous
 

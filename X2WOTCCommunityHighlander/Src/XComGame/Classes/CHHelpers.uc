@@ -122,6 +122,10 @@ var config array<name> RequiresTargetingActivation;
 var config array<name> AdditionalAmbushRiskTemplates;
 // End Issue #485
 
+// Start Issue #551
+var config bool UseTeamSwapFix;
+// End Issue #551
+
 // Start Issue #123
 simulated static function RebuildPerkContentCache() {
 	local XComContentManager		Content;
