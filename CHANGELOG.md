@@ -213,6 +213,9 @@ All notable changes to Vanilla 'War Of The Chosen' Behaviour will be documented 
 - Make disorient reapply to disoriented units so that things like flashbangs can
   still remove overwatch from disoriented units (#475)
 
+- Make sure that rescue rings do not disappear on other rescuable units after a
+  neutral unit swaps to team XCom (behaviour guarded behind CHHelpers.UseTeamSwapFix
+  config var) (#551)
 
 ## Miscellaneous
 
