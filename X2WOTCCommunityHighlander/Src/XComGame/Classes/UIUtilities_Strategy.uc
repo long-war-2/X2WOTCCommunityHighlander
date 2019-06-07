@@ -989,7 +989,7 @@ static function TriggerOverridePersonnelStatus(
 
 	OverrideTuple = new class'XComLWTuple';
 	OverrideTuple.Id = 'OverridePersonnelStatus';
-	OverrideTuple.Data.Add(6);
+	OverrideTuple.Data.Add(7);
 	OverrideTuple.Data[0].kind = XComLWTVString;
 	OverrideTuple.Data[0].s = Status;
 	OverrideTuple.Data[1].kind = XComLWTVString;
