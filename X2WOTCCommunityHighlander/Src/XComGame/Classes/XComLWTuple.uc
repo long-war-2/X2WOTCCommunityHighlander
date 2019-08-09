@@ -38,20 +38,6 @@
 // was not intended to receive data from more than one mod a conflict occurs and these mods
 // may be incompatible.
 //
-// == USAGE ==
-//
-// To make use of LWTuple in your mods, create a subfolder LW_Tuple under your mod's Src
-// folder, and a Classes folder under LW_Tuple. Copy this source file into that folder and
-// add it to your project. Then add the following lines to your XComEngine.ini config file:
-//
-// [UnrealEd.EditorEngine]
-// +ModEditPackages=LW_Tuple
-//
-// You can then refer to the LWTuple and LWTValue types in your code.
-//
-// DO NOT CHANGE THE CONTENTS OF THIS FILE IN YOUR MOD. In order for this system to work
-// all mods must agree on the definition of LWTuple. Different definitions of LWTuple in
-// different mods may lead to bugs or crashes.
 //---------------------------------------------------------------------------------------
 
 class XComLWTuple extends Object;
@@ -64,7 +50,18 @@ enum XComLWTValueKind
     XComLWTVFloat,
     XComLWTVString,
     XComLWTVName,
-    XComLWTVObject
+    XComLWTVObject,
+    XComLWTVVector,
+    XComLWTVRotator,
+    XComLWTVTile,
+    XComLWTVArrayObjects,
+    XComLWTVArrayInts,
+    XComLWTVArrayFloats,
+    XComLWTVArrayStrings,
+    XComLWTVArrayNames,
+    XComLWTVArrayVectors,
+    XComLWTVArrayRotators,
+    XComLWTVArrayTiles
 };
 
 // A single value stored in a tuple.
@@ -76,6 +73,17 @@ struct XComLWTValue
     var String s;
     var name n;
     var Object o;
+    var Vector v;
+    var Rotator r;
+    var TTile t;
+    var array<Object> ao;
+    var array<int> ai;
+    var array<float> af;
+    var array<string> as;
+    var array<name> an;
+    var array<Vector> av;
+    var array<Rotator> ar;
+    var array<TTile> at;
 
     var XComLWTValueKind kind;
 };
