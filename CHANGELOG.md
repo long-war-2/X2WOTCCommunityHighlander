@@ -206,6 +206,10 @@ RunPriorityGroup=RUN_STANDARD
 - `OverrideLootRecovery` allows mods to determine whether loot is automatically recovered
   at the end of a mission (which is only supported by full sweep missions with corpse retrieval
   in the base game) (#571)
+- `CanAwardKillXp` allows mods to control whether a kill awards XP or not (#562)
+- `OverrideTotalNumKills` allows mods to override the amount of kill XP that a unit has (#562)
+- `OnDistributeTacticalGameEndXp` notifies mods that they can distribute any extra XP at the end
+  of the mission (#562)
 
 ### Configuration
 - Added ability to modify default spawn size (#18)
