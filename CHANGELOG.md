@@ -101,6 +101,9 @@ RunPriorityGroup=RUN_STANDARD
   ways than just the tooltip and image (#537)
 - Triggers the event `OverrideShowPromoteIcon` to allow mods to override whether the promotion icon is
   displayed for a given soldier or not (#631)
+- Triggers the event `OverridePromotionUIClasses` to allow mods to override the UI classes used for the
+  three different promotion screens (#600)
+
 
 ### Modding Exposures
 - Allows mods to add custom items to the Avenger Shortcuts (#163)
