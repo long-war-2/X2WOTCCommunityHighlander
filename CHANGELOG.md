@@ -290,6 +290,8 @@ RunPriorityGroup=RUN_STANDARD
   squad (#644)
 - Fix issue where trying to break out of a hack that has already been started using the
   Esc key or the right mouse button bypasses Haywire's cooldown (#648)
+- Prevent psi zombies from dropping loot if the original unit was killed with an
+  explosive (#682)
 
 ## Miscellaneous
 
