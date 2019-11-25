@@ -286,6 +286,8 @@ RunPriorityGroup=RUN_STANDARD
   a valid step-out tile (#617)
 - Prevent patrolling enemy units from teleporting behind XCOM and revealing the
   squad (#644)
+- Fix issue where trying to break out of a hack that has already been started using the
+  Esc key or the right mouse button bypasses Haywire's cooldown (#648)
 
 ## Miscellaneous
 
