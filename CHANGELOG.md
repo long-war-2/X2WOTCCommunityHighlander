@@ -218,6 +218,8 @@ RunPriorityGroup=RUN_STANDARD
 - `OverrideTotalNumKills` allows mods to override the amount of kill XP that a unit has (#562)
 - `OnDistributeTacticalGameEndXp` notifies mods that they can distribute any extra XP at the end
   of the mission (#562)
+- `MindControlLost` fires whenever a unit stops being mind controlled or hacked. The event
+  passes the affected unit state as both event data and event source (#643)
 
 ### Configuration
 - Added ability to modify default spawn size (#18)
