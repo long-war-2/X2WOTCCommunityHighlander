@@ -268,6 +268,8 @@ RunPriorityGroup=RUN_STANDARD
   still remove overwatch from disoriented units (#475)
 - Make sure that rescue rings do not disappear on other rescuable units after a
   neutral unit swaps to team XCom (#551)
+- Prevent psi zombies from dropping loot if the original unit was killed with an
+  explosive (#682)
 
 ## Miscellaneous
 
