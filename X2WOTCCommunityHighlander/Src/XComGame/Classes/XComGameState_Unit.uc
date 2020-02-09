@@ -6257,27 +6257,19 @@ function OnUnitBledOut(XComGameState NewGameState, Object CauseOfDeath, const ou
 
 protected function OnUnitDied(XComGameState NewGameState, Object CauseOfDeath, const out StateObjectReference SourceStateObjectRef, bool ApplyToOwnerAndComponents = true, optional const out EffectAppliedData EffectData)
 {
-	local XComGameState_Unit Killer, Owner, Comp, KillAssistant, Iter, NewUnitState;
+	local XComGameState_Unit Killer, Owner, Comp, NewUnitState;
 	local XComGameStateHistory History;
 	local int iComponentID;
 	local bool bAllDead;
 	local X2EventManager EventManager;
 	local string LogMsg;
 	local XComGameState_Ability AbilityStateObject;
-	local UnitValue RankUpValue;
 	local XComGameState_BattleData BattleData;
 	local XComGameState_HeadquartersXCom XComHQ;
 	local Name CharacterGroupName, CharacterDeathEvent;
 	local XComGameState_Destructible DestructibleKiller;
 	local X2Effect EffectCause;
 	local XComGameState_Effect EffectState;
-
-	local StateObjectReference objRef;
-	local X2CharacterTemplate myTemplate;
-
-	objRef = GetReference();
-	myTemplate = GetMyTemplate();
-
 
 	LogMsg = class'XLocalizedData'.default.UnitDiedLogMsg;
 	LogMsg = repl(LogMsg, "#Unit", GetName(eNameType_RankFull));
@@ -6405,56 +6397,35 @@ protected function OnUnitDied(XComGameState NewGameState, Object CauseOfDeath, c
 
 						Killer.BonusKills += (XComHQ.BonusKillXP);
 					}
-
-					// Issue #562
-					/// HL-Docs: feature:XpKillShotPrePopup; issue:562; tags:tactical
-					/// This event is identical to 'XpKillShot' except it is fired before the
-					/// rank up notification pops up on screen and before the kill-assist XP
-					/// is distributed. It only triggers if the killer is being awarded XP
-					/// for the kill.
-					///
-					/// ```unrealscript
-					/// EventID: XpKillShotPrePopup
-					/// EventData: Killer (StateObjectReference to XCGS_Unit)
-					/// EventSource: KilledUnit (StateObjectReference to XCGS_Unit)
-					/// NewGameState: yes
-					/// ```
-					`TRIGGERXP('XpKillShotPrePopup', Killer.GetReference(), GetReference(), NewGameState);
-
-					//  Check for and trigger event to display rank up message if applicable
-					if (Killer.IsSoldier() && Killer.CanRankUpSoldier() && !class'X2TacticalGameRulesetDataStructures'.static.TacticalOnlyGameMode())
+						
+					// Start Issue #562
+					/// HL-Docs: ref:EnableNewKillXpEvalOrder
+					if (class'CHHelpers'.default.EnableNewKillXpEvalOrder)
 					{
-						Killer.GetUnitValue('RankUpMessage', RankUpValue);
-						if (RankUpValue.fValue == 0)
-						{
-							EventManager.TriggerEvent('RankUpMessage', Killer, Killer, NewGameState);
-							Killer.SetUnitFloatValue('RankUpMessage', 1, eCleanup_BeginTactical);
-						}
+						DisplayRankUpMessageIfApplicable(Killer, NewGameState);
+						
+						/// HL-Docs: feature:XpKillShotPrePopup; issue:562; tags:tactical
+						/// This event is identical to 'XpKillShot' except it is fired before the
+						/// rank up notification pops up on screen and before the kill-assist XP
+						/// is distributed. It only triggers if the killer is being awarded XP
+						/// for the kill.
+						///
+						/// ```unrealscript
+						/// EventID: XpKillShotPrePopup
+						/// EventData: Killer (StateObjectReference to XCGS_Unit)
+						/// EventSource: KilledUnit (StateObjectReference to XCGS_Unit)
+						/// NewGameState: yes
+						/// ```
+						`TRIGGERXP('XpKillShotPrePopup', Killer.GetReference(), GetReference(), NewGameState);
+						DistributeKillAssistXp(Killer, NewGameState);
 					}
-
-					//  All team mates that are alive and able to earn XP will be credited with a kill assist (regardless of their actions)
-					foreach History.IterateByClassType(class'XComGameState_Unit', Iter)
+					else
 					{
-						if (Iter != Killer && Iter.ControllingPlayer.ObjectID == Killer.ControllingPlayer.ObjectID && Iter.CanEarnXp() && Iter.IsAlive())
-						{
-							KillAssistant = XComGameState_Unit(NewGameState.ModifyStateObject(Iter.Class, Iter.ObjectID));
-							KillAssistant.KillAssists.AddItem(objRef);
-							KillAssistant.KillAssistsCount += myTemplate.KillContribution;
-
-							//  jbouscher: current desire is to only display the rank up message based on a full kill, commenting this out for now.
-							//  Check for and trigger event to display rank up message if applicable
-							//if (KillAssistant.IsSoldier() && KillAssistant.CanRankUpSoldier())
-							//{
-							//	RankUpValue.fValue = 0;
-							//	KillAssistant.GetUnitValue('RankUpMessage', RankUpValue);
-							//	if (RankUpValue.fValue == 0)
-							//	{
-							//		EventManager.TriggerEvent('RankUpMessage', KillAssistant, KillAssistant, NewGameState);
-							//		KillAssistant.SetUnitFloatValue('RankUpMessage', 1, eCleanup_BeginTactical);
-							//	}
-							//}
-						}
+						`TRIGGERXP('XpKillShotPrePopup', Killer.GetReference(), GetReference(), NewGameState);
+						DisplayRankUpMessageIfApplicable(Killer, NewGameState);
+						DistributeKillAssistXp(Killer, NewGameState);
 					}
+					// End Issue #562
 					`TRIGGERXP('XpKillShot', Killer.GetReference(), GetReference(), NewGameState);
 				}
 			}
@@ -6620,6 +6591,56 @@ function bool TriggerCanAwardKillXp(XComGameState_Unit Killer)
 	`XEVENTMGR.TriggerEvent('CanAwardKillXp', Tuple, self);
 
 	return Tuple.Data[1].b;
+}
+
+function DistributeKillAssistXp(XComGameState_Unit Killer, XComGameState NewGameState)
+{
+	local XComGameState_Unit Iter, KillAssistant;
+	local X2CharacterTemplate myTemplate;
+	local StateObjectReference objRef;
+
+	myTemplate = GetMyTemplate();
+	objRef = GetReference();
+
+	//  All team mates that are alive and able to earn XP will be credited with a kill assist (regardless of their actions)
+	foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_Unit', Iter)
+	{
+		if (Iter != Killer && Iter.ControllingPlayer.ObjectID == Killer.ControllingPlayer.ObjectID && Iter.CanEarnXp() && Iter.IsAlive())
+		{
+			KillAssistant = XComGameState_Unit(NewGameState.ModifyStateObject(Iter.Class, Iter.ObjectID));
+			KillAssistant.KillAssists.AddItem(objRef);
+			KillAssistant.KillAssistsCount += myTemplate.KillContribution;
+
+			//  jbouscher: current desire is to only display the rank up message based on a full kill, commenting this out for now.
+			//  Check for and trigger event to display rank up message if applicable
+			//if (KillAssistant.IsSoldier() && KillAssistant.CanRankUpSoldier())
+			//{
+			//	RankUpValue.fValue = 0;
+			//	KillAssistant.GetUnitValue('RankUpMessage', RankUpValue);
+			//	if (RankUpValue.fValue == 0)
+			//	{
+			//		EventManager.TriggerEvent('RankUpMessage', KillAssistant, KillAssistant, NewGameState);
+			//		KillAssistant.SetUnitFloatValue('RankUpMessage', 1, eCleanup_BeginTactical);
+			//	}
+			//}
+		}
+	}
+}
+
+function DisplayRankUpMessageIfApplicable(XComGameState_Unit Killer, XComGameState NewGameState)
+{
+	local UnitValue RankUpValue;
+
+	//  Check for and trigger event to display rank up message if applicable
+	if (Killer.IsSoldier() && Killer.CanRankUpSoldier() && !class'X2TacticalGameRulesetDataStructures'.static.TacticalOnlyGameMode())
+	{
+		Killer.GetUnitValue('RankUpMessage', RankUpValue);
+		if (RankUpValue.fValue == 0)
+		{
+			`XEVENTMGR.TriggerEvent('RankUpMessage', Killer, Killer, NewGameState);
+			Killer.SetUnitFloatValue('RankUpMessage', 1, eCleanup_BeginTactical);
+		}
+	}
 }
 // End Issue #562
 
