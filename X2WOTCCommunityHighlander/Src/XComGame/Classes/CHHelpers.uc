@@ -157,6 +157,14 @@ var config int NoiseAlertSoundRange;
 var config array<name> AdditionalAIBTActionPointTypes;
 // End Issue #510
 
+// Start Issue #562
+//
+/// HL-Docs: feature:EnableNewKillXpEvalOrder; issue:562; tags:misc
+/// Makes the base game distribute kill assist XP *before* showing the promotion
+/// notification in tactical rather than after.
+var config bool EnableNewKillXpEvalOrder;
+// End Issue #562
+
 // Start Issue #123
 simulated static function RebuildPerkContentCache() {
 	local XComContentManager		Content;
