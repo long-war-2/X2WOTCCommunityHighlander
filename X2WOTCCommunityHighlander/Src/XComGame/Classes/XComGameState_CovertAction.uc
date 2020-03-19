@@ -649,19 +649,10 @@ function GiveRewards(XComGameState NewGameState)
 	local XComGameState_StaffSlot SlotState;
 	local XComGameState_Unit UnitState;
 	local array<XComGameState_Unit> BondedSoldiers;
-	local XComLWTuple Tuple; // Issue #438
 	local int idx;
 
 	// Issue #438 Start
-	Tuple = new class'XComLWTuple';
-	Tuple.Id = 'CovertAction_PreventGiveRewards';
-	Tuple.Data.Add(1);
-	Tuple.Data[0].kind = XComLWTVBool;
-	Tuple.Data[0].b = false;
-
-	`XEVENTMGR.TriggerEvent('CovertAction_PreventGiveRewards', Tuple, self);
-
-	if (Tuple.Data[0].b)
+	if (TriggerPreventGiveRewards(self))
 	{
 		return;
 	}
@@ -711,6 +702,37 @@ function GiveRewards(XComGameState NewGameState)
 		}
 	}
 }
+
+// Start Issue #438, #810
+/// HL-Docs: feature:CovertAction_PreventGiveRewards; issue:438; tags:strategy
+/// Fires an event that allows listeners to prevent the covert action from
+/// awarding the action's rewards to the player. Note that if the `PreventGiveRewards`
+/// boolean is `true` then not only are the rewards not given, but the soldiers
+/// on the covert action get no XP or cohesion.
+///
+/// ```unrealscript
+/// EventID: CovertAction_PreventGiveRewards
+/// EventData: XComLWTuple {
+///     Data: [ inout bool PreventGiveRewards ]
+/// }
+/// EventSource: XComGameState_CovertAction
+/// NewGameState: no
+/// ```
+static function bool TriggerPreventGiveRewards(XComGameState_CovertAction CAState)
+{
+	local XComLWTuple Tuple;
+
+	Tuple = new class'XComLWTuple';
+	Tuple.Id = 'CovertAction_PreventGiveRewards';
+	Tuple.Data.Add(1);
+	Tuple.Data[0].kind = XComLWTVBool;
+	Tuple.Data[0].b = false;
+
+	`XEVENTMGR.TriggerEvent('CovertAction_PreventGiveRewards', Tuple, CAState);
+
+	return Tuple.Data[0].b;
+}
+// End Issue #438, #810
 
 //---------------------------------------------------------------------------------------
 function string GetRewardDescriptionString()
