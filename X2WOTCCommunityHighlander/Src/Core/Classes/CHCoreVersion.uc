@@ -1,5 +1,5 @@
 /// HL-Docs: ref:ComponentVersions
-class CHEngineVersion extends Object;
+class CHCoreVersion extends Object;
 
 var int MajorVersion;
 var int MinorVersion;
