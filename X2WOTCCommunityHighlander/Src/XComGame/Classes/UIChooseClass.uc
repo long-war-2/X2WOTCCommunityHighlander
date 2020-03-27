@@ -126,7 +126,7 @@ simulated function array<X2SoldierClassTemplate> GetClasses()
 	return ClassTemplates;
 }
 
-/// HL-Docs: feature:ValidateGTSClassTraining; issue:814; tags:strategy,classes,events
+/// HL-Docs: feature:ValidateGTSClassTraining; issue:814; tags:strategy,events
 /// Triggers an 'ValidateGTSClassTraining' event that allows listeners to control
 /// whether the given class can be trained in the GTS. Returns true by default,
 /// so vanilla behavior should be maintained.
