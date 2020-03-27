@@ -114,11 +114,12 @@ simulated function array<X2SoldierClassTemplate> GetClasses()
 	SoldierClassTemplateMan = class'X2SoldierClassTemplateManager'.static.GetSoldierClassTemplateManager();
 
 	// Start Issue #814
-
+  
 	foreach SoldierClassTemplateMan.IterateTemplates(Template, none)
 	{		
 		SoldierClassTemplate = X2SoldierClassTemplate(Template);
 		
+
 		if(TriggerGTSClassValidationEvent(SoldierClassTemplate.DataName) && SoldierClassTemplate.NumInForcedDeck > 0 && !SoldierClassTemplate.bMultiplayerOnly)
 			ClassTemplates.AddItem(SoldierClassTemplate);
 	}
