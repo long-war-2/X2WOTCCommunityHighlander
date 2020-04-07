@@ -583,7 +583,7 @@ function GiveRewards(XComGameState NewGameState)
 	local int idx;
 
 	// Issue #438 Start
-	if (TriggerPreventGiveRewards(self))
+	if (TriggerPreventGiveRewards())
 	{
 		return;
 	}
@@ -635,6 +635,10 @@ function GiveRewards(XComGameState NewGameState)
 }
 
 // Start Issue #438, #810
+//
+// *Note* This is not part of the highlander's public API, so it is not covered
+// by the backwards compatibility policy. It's for internal use only.
+//
 /// HL-Docs: feature:CovertAction_PreventGiveRewards; issue:438; tags:strategy
 /// Fires an event that allows listeners to prevent the covert action from
 /// awarding the action's rewards to the player. Note that if the `PreventGiveRewards`
@@ -649,7 +653,7 @@ function GiveRewards(XComGameState NewGameState)
 /// EventSource: XComGameState_CovertAction
 /// NewGameState: no
 /// ```
-static function bool TriggerPreventGiveRewards(XComGameState_CovertAction CAState)
+function bool TriggerPreventGiveRewards()
 {
 	local XComLWTuple Tuple;
 
@@ -659,7 +663,7 @@ static function bool TriggerPreventGiveRewards(XComGameState_CovertAction CAStat
 	Tuple.Data[0].kind = XComLWTVBool;
 	Tuple.Data[0].b = false;
 
-	`XEVENTMGR.TriggerEvent('CovertAction_PreventGiveRewards', Tuple, CAState);
+	`XEVENTMGR.TriggerEvent('CovertAction_PreventGiveRewards', Tuple, self);
 
 	return Tuple.Data[0].b;
 }
