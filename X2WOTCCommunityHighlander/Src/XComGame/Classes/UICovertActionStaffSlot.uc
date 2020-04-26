@@ -171,7 +171,8 @@ function UpdateData()
 				PromoteLabel = (Unit.ShowPromoteIcon()) ? class'UISquadSelect_ListItem'.default.m_strPromote : "";
 				Value4 = Caps(ActionState.GetStaffRisksAppliedString(StaffIndex)); // Value 4 is automatically red / negative!
 
-				if (!Unit.bCaptured)
+				/// HL-Docs: ref:CovertAction_PreventGiveRewards
+				if (!Unit.bCaptured && !GetAction().TriggerPreventGiveRewards()) // Event trigger Issue #810
 				{
 					Value1 = m_strGainedXP; // Gained Experience
 					CohesionUnitNames = GetCohesionRewardUnits();
