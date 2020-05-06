@@ -636,26 +636,26 @@ state InReplayPlayback
 	function bool Key_Q( int ActionMask )
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_RELEASE) != 0)
-			XComTacticalController(Outer).YawCamera(90.0);
+			XComTacticalController(Outer).YawCamera(GetCameraRotationAngle(ActionMask));  // Issue #854
 		return false;
 	}
 	function bool Key_E( int ActionMask )
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_RELEASE) != 0)
-			XComTacticalController(Outer).YawCamera(-90.0);
+			XComTacticalController(Outer).YawCamera(-1 * GetCameraRotationAngle(ActionMask));  // Issue #854
 		return false;
 	}
 
 	function bool DPad_Right( int ActionMask )
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_RELEASE) != 0)
-			XComTacticalController(Outer).YawCamera(-90.0);
+			XComTacticalController(Outer).YawCamera(-1 * GetCameraRotationAngle(ActionMask));  // Issue #854
 		return false;
 	}
 	function bool DPad_Left( int ActionMask )
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_RELEASE) != 0)
-			XComTacticalController(Outer).YawCamera(90.0);
+			XComTacticalController(Outer).YawCamera(GetCameraRotationAngle(ActionMask));  // Issue #854
 		return false;
 	}
 	function bool DPad_Up( int ActionMask )
@@ -886,6 +886,47 @@ state InReplayPlayback
 Begin: 
 }
 
+// Start Issue #854
+/// HL-Docs: feature:OverrideCameraRotationAngle; issue:854; tags:tactical
+/// The 'OverrideCameraRotationAngle' event allows mods to override the angle
+/// the camera rotates when using the controller or the Q and E buttons. The
+/// event takes the following form, with mods changing the first value of the
+/// tuple if they want to change the angle:
+///
+/// ```unrealscript
+/// EventID: OverrideCameraRotationAngle
+/// EventData: XComLWTuple {
+///     Data: [
+///       inout float RotationAngle,
+///       in int ActionMask
+///     ]
+/// }
+/// EventSource: self (XComTacticalInput)
+/// NewGameState: no
+/// ```
+
+simulated function float GetCameraRotationAngle(int ActionMask)
+{
+	local XComLWTuple Tuple;
+	local float CameraRotationAngle;
+
+	CameraRotationAngle = class'CHHelpers'.default.CameraRotationAngle == 0.0 ? 90.0 : class'CHHelpers'.default.CameraRotationAngle;
+
+	// Allow mods to override this default angle via an event
+    Tuple = new class'XComLWTuple';
+    Tuple.Id = 'OverrideCameraRotationAngle';
+	Tuple.Data.Add(2);
+    Tuple.Data[0].Kind = XComLWTVFloat;
+    Tuple.Data[0].f = CameraRotationAngle;
+    Tuple.Data[1].Kind = XComLWTVInt;
+    Tuple.Data[1].i = ActionMask;
+
+    `XEVENTMGR.TriggerEvent('OverrideCameraRotationAngle', Tuple, self);
+
+	return Tuple.Data[0].f;
+}
+// End Issue #854
+
 // This state is exactly the same as state "UsingTargetingMethod" except that I brought back camera rotation
 // and I removed the ability to press the Y button for Overwatch shortcut.
 state UsingSecondaryTargetingMethod
@@ -980,7 +1021,7 @@ state UsingSecondaryTargetingMethod
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_PRESS) != 0)
 		{
-			XComTacticalController(Outer).YawCamera(-90.0);
+			XComTacticalController(Outer).YawCamera(-1 * GetCameraRotationAngle(Actionmask));  // Issue #854
 		}
 		return true;
 	}
@@ -989,7 +1030,7 @@ state UsingSecondaryTargetingMethod
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_PRESS) != 0)
 		{
-			XComTacticalController(Outer).YawCamera(90.0);
+			XComTacticalController(Outer).YawCamera(GetCameraRotationAngle(Actionmask));  // Issue #854
 		}
 		return true;
 	}
@@ -1244,7 +1285,7 @@ state UsingTargetingMethod
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_PRESS) != 0)
 		{
-			XComTacticalController(Outer).YawCamera(-90.0);
+			XComTacticalController(Outer).YawCamera(-1 * GetCameraRotationAngle(Actionmask));  // Issue #854
 		}
 		return true;
 	}
@@ -1253,7 +1294,7 @@ state UsingTargetingMethod
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_PRESS) != 0)
 		{
-			XComTacticalController(Outer).YawCamera(90.0);
+			XComTacticalController(Outer).YawCamera(GetCameraRotationAngle(Actionmask));  // Issue #854
 		}
 		return true;
 	}
@@ -1480,26 +1521,26 @@ state Multiplayer_Inactive
 	function bool Key_E( int ActionMask )
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_RELEASE) != 0)
-			XComTacticalController(Outer).YawCamera(-90.0);
+			XComTacticalController(Outer).YawCamera(-1 * GetCameraRotationAngle(Actionmask));  // Issue #854
 		return false;
 	}
 	function bool Key_Q( int ActionMask )
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_RELEASE) != 0)
-			XComTacticalController(Outer).YawCamera(90.0);
+			XComTacticalController(Outer).YawCamera(GetCameraRotationAngle(Actionmask));  // Issue #854
 		return false;
 	}
 
 	function bool DPad_Right( int ActionMask )
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_RELEASE) != 0)
-			XComTacticalController(Outer).YawCamera(-90.0);
+			XComTacticalController(Outer).YawCamera(-1 * GetCameraRotationAngle(Actionmask));  // Issue #854
 		return false;
 	}
 	function bool DPad_Left( int ActionMask )
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_RELEASE) != 0)
-			XComTacticalController(Outer).YawCamera(90.0);
+			XComTacticalController(Outer).YawCamera(GetCameraRotationAngle(Actionmask));  // Issue #854
 		return false;
 	}
 	function bool DPad_Up( int ActionMask )
@@ -2373,13 +2414,13 @@ state ActiveUnit_Moving
 	function bool Key_E( int ActionMask )
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_RELEASE) != 0)
-			XComTacticalController(Outer).YawCamera(-90.0);
+			XComTacticalController(Outer).YawCamera(-1 * GetCameraRotationAngle(Actionmask));  // Issue #854
 		return false;
 	}
 	function bool Key_Q( int ActionMask )
 	{
 		if (( ActionMask & class'UIUtilities_Input'.const.FXS_ACTION_RELEASE) != 0)
-			XComTacticalController(Outer).YawCamera(90.0);
+			XComTacticalController(Outer).YawCamera(GetCameraRotationAngle(Actionmask));  // Issue #854
 		return false;
 	}
 	function bool DPad_Up( int ActionMask )

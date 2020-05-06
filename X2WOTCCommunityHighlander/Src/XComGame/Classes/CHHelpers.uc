@@ -174,6 +174,9 @@ var config array<name> AdditionalAIBTActionPointTypes;
 //	Variable for Issue #724
 var config array<name> ValidReserveAPForUnitFlag;
 
+// Variable for Issue #854
+var config float CameraRotationAngle;
+
 // Start Issue #123
 simulated static function RebuildPerkContentCache() {
 	local XComContentManager		Content;
