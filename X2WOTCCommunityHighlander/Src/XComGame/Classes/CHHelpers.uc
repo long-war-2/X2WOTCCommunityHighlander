@@ -170,6 +170,10 @@ var config int NoiseAlertSoundRange;
 var config array<name> AdditionalAIBTActionPointTypes;
 // End Issue #510
 
+// Start Issue #854
+var config float CameraRotationAngle;
+// End Issue #854
+
 // Start Issue #123
 simulated static function RebuildPerkContentCache() {
 	local XComContentManager		Content;
