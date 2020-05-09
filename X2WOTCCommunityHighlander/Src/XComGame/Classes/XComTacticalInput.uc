@@ -1231,6 +1231,8 @@ state UsingTargetingMethod
 	
 	function bool Stick_R3(int ActionMask)
 	{
+		local name EvacAbilityName; // Issue #855
+
 		if (!UITacticalHUD(Get2DMovie().Pres.ScreenStack.GetScreen(class'UITacticalHUD')).SkyrangerButton.bIsVisible)
 		{
 			return false;
@@ -1248,7 +1250,19 @@ state UsingTargetingMethod
 			}
 		}
 
-		return ActivateAbilityByName(ActionMask, 'PlaceEvacZone');
+		// Start Issue #855
+		EvacAbilityName = 'PlaceEvacZone';
+		if (!TriggerOverrideR3Button(EvacAbilityName))
+		{
+			// No override listener is disabling the default behaviour (but may have
+			// changed the ability name to activate).
+			return ActivateAbilityByName(ActionMask, EvacAbilityName);
+		}
+		else
+		{
+			return false;
+		}
+		// End Issue #855
 	}
 	function bool DPad_Up( int ActionMask )
 	{
@@ -1382,6 +1396,45 @@ state UsingTargetingMethod
 		return false;
 	}
 }
+
+// Start Issue #855
+/// HL-Docs: feature:OverrideR3Button; issue:855; tags:tactical
+/// Allows listeners to override the behaviour of the R3 button, either
+/// completely or just changing the ability that is activated ('PlaceEvacZone'
+/// by default). If `DisableDefaultBehaviour` is `true`, then the default
+/// handling of R3 in this class is skipped. Otherwise, R3 simply activates
+/// whatever ability name is provided (or the default if the ability name
+/// is not overridden by any listener).
+///
+/// ```unrealscript
+/// EventID: OverrideR3Button
+/// EventData: XComLWTuple {
+///     Data: [
+///       out bool DisableDefaultBehaviour,
+///       inout name AbilityNameToActivate
+///     ]
+/// }
+/// EventSource: none
+/// NewGameState: no
+/// ```
+protected static function bool TriggerOverrideR3Button(out name AbilityName)
+{
+	local XComLWTuple OverrideTuple;
+
+	OverrideTuple = new class'XComLWTuple';
+	OverrideTuple.Id = 'OverrideR3Button';
+	OverrideTuple.Data.Add(2);
+	OverrideTuple.Data[0].kind = XComLWTVBool;
+	OverrideTuple.Data[0].b = false;
+	OverrideTuple.Data[1].kind = XComLWTVName;
+	OverrideTuple.Data[1].n = AbilityName;
+
+	`XEVENTMGR.TriggerEvent(OverrideTuple.Id, OverrideTuple);
+
+	AbilityName = OverrideTuple.Data[1].n;
+	return OverrideTuple.Data[0].b;
+}
+// End Issue #855
 
 //-----------------------------------------------------------
 //-----------------------------------------------------------
@@ -2357,7 +2410,10 @@ state ActiveUnit_Moving
 	
 
 	function bool Stick_R3( int ActionMask )
-	{		if (!UITacticalHUD(Get2DMovie().Pres.ScreenStack.GetScreen(class'UITacticalHUD')).SkyrangerButton.bIsVisible)
+	{
+		local name EvacAbilityName; // Issue #855
+
+		if (!UITacticalHUD(Get2DMovie().Pres.ScreenStack.GetScreen(class'UITacticalHUD')).SkyrangerButton.bIsVisible)
 		{
 			return false;
 		}
@@ -2370,8 +2426,20 @@ state ActiveUnit_Moving
 			else
 				return false;
 		}
-		
-		return ActivateAbilityByName(ActionMask, 'PlaceEvacZone');
+
+		// Start Issue #855
+		EvacAbilityName = 'PlaceEvacZone';
+		if (!TriggerOverrideR3Button(EvacAbilityName))
+		{
+			// No override listener is disabling the default behaviour (but may have
+			// changed the ability name to activate).
+			return ActivateAbilityByName(ActionMask, EvacAbilityName);
+		}
+		else
+		{
+			return false;
+		}
+		// End Issue #855
 	}
 	function bool Stick_L3( int ActionMask )
 	{
