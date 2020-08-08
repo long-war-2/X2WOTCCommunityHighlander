@@ -6578,13 +6578,20 @@ protected function OnUnitDied(XComGameState NewGameState, Object CauseOfDeath, c
 	{
 		Killer = XComGameState_Unit(History.GetGameStateForObjectID(Killer.GhostSourceUnit.ObjectID));
 	}
+	
+	// Issue #221 and #562
+	/// HL-Docs: ref:OverrideKillXp
+	KillXp = GetMyTemplate().KillContribution; // Allows specific units to contribute different amounts to the kill total
+	
 	//issue #221 - let any kill be tracked no matter what unit made the kill, as long as a killer exists
 	if(Killer != none)
 	{
 		Killer = XComGameState_Unit(NewGameState.ModifyStateObject(Killer.Class, Killer.ObjectID));
 		Killer.KilledUnits.AddItem(GetReference());
+		Killer.KillCount += KillXp; // Issue #562 - do this here to keep the functionality of #221 in case the check below fails
 	}
 	//end issue #221
+
 	if( GetTeam() == eTeam_Alien || GetTeam() == eTeam_TheLost || GetTeam() == eTeam_One || GetTeam() == eTeam_Two) //issue #188 - let eTeam_One and eTeam_Two units count as enemies when they die
 	{
 		if( SourceStateObjectRef.ObjectID != 0 )
@@ -6604,73 +6611,71 @@ protected function OnUnitDied(XComGameState NewGameState, Object CauseOfDeath, c
 
 				CheckForFlankingEnemyKill(NewGameState, Killer);
 
-				// Issue #562 - Allow mods to cap kill XP
-				/// HL-Docs: ref:CanAwardKillXp
-				if (TriggerCanAwardKillXp(Killer))
+				// If the Wet Work GTS bonus is active, increment the Wet Work kill counter
+				XComHQ = XComGameState_HeadquartersXCom(History.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom', true));
+				if(XComHQ != none)
 				{
-					// If the Wet Work GTS bonus is active, increment the Wet Work kill counter
-					XComHQ = XComGameState_HeadquartersXCom(History.GetSingleGameStateObjectForClass(class'XComGameState_HeadquartersXCom', true));
-					if(XComHQ != none)
+					if(XComHQ.SoldierUnlockTemplates.Find('WetWorkUnlock') != INDEX_NONE)
 					{
-						if(XComHQ.SoldierUnlockTemplates.Find('WetWorkUnlock') != INDEX_NONE)
-						{
-							WetWorkXp = 1;  // Issue #562: store in a variable so it can be overridden
-						}
-
-						BonusKillXp = XComHQ.BonusKillXP;  // Issue #562: store in a variable so it can be overridden
+						WetWorkXp = 1;  // Issue #562: store in a variable so it can be overridden
 					}
 
-					// Start Issue #562
-					/// HL-Docs: ref:OverrideKillXp
-					// Get the default values for kill XP and kill assist XP and then allow mods to
-					// override these values before applying them to the unit.
-					KillXp = GetMyTemplate().KillContribution; // Allows specific units to contribute different amounts to the kill total
-					KillAssistXp = KillXp;
-
-					TriggerOverrideKillXp(Killer, KillXp, BonusKillXp, KillAssistXp, WetWorkXp);
-
-					Killer.KillCount += KillXp;
-					Killer.BonusKills += BonusKillXp;
-					Killer.WetWorkKills += WetWorkXp;
-					// End Issue #562
-
-					//  Check for and trigger event to display rank up message if applicable
-					if (Killer.IsSoldier() && Killer.CanRankUpSoldier() && !class'X2TacticalGameRulesetDataStructures'.static.TacticalOnlyGameMode())
-					{
-						Killer.GetUnitValue('RankUpMessage', RankUpValue);
-						if (RankUpValue.fValue == 0)
-						{
-							`XEVENTMGR.TriggerEvent('RankUpMessage', Killer, Killer, NewGameState);
-							Killer.SetUnitFloatValue('RankUpMessage', 1, eCleanup_BeginTactical);
-						}
-					}
-
-					//  All team mates that are alive and able to earn XP will be credited with a kill assist (regardless of their actions)
-					foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_Unit', Iter)
-					{
-						if (Iter != Killer && Iter.ControllingPlayer.ObjectID == Killer.ControllingPlayer.ObjectID && Iter.CanEarnXp() && Iter.IsAlive())
-						{
-							KillAssistant = XComGameState_Unit(NewGameState.ModifyStateObject(Iter.Class, Iter.ObjectID));
-							KillAssistant.KillAssists.AddItem(objRef);
-							KillAssistant.KillAssistsCount += KillAssistXp;  // Issue #562: use mod-provided values if overridden
-
-							//  jbouscher: current desire is to only display the rank up message based on a full kill, commenting this out for now.
-							//  Check for and trigger event to display rank up message if applicable
-							//if (KillAssistant.IsSoldier() && KillAssistant.CanRankUpSoldier())
-							//{
-							//	RankUpValue.fValue = 0;
-							//	KillAssistant.GetUnitValue('RankUpMessage', RankUpValue);
-							//	if (RankUpValue.fValue == 0)
-							//	{
-							//		EventManager.TriggerEvent('RankUpMessage', KillAssistant, KillAssistant, NewGameState);
-							//		KillAssistant.SetUnitFloatValue('RankUpMessage', 1, eCleanup_BeginTactical);
-							//	}
-							//}
-						}
-					}
-
-					`TRIGGERXP('XpKillShot', Killer.GetReference(), GetReference(), NewGameState);
+					BonusKillXp = XComHQ.BonusKillXP;  // Issue #562: store in a variable so it can be overridden
 				}
+
+				// Start Issue #562
+				/// HL-Docs: ref:OverrideKillXp
+
+				// Undo xp from #221
+				Killer.KillCount -= KillXp;
+
+				// Get the default values for kill XP and kill assist XP and then allow mods to
+				// override these values before applying them to the unit.
+				KillAssistXp = KillXp;
+
+				TriggerOverrideKillXp(Killer, KillXp, BonusKillXp, KillAssistXp, WetWorkXp);
+
+				Killer.KillCount += KillXp;
+				Killer.BonusKills += BonusKillXp;
+				Killer.WetWorkKills += WetWorkXp;
+				// End Issue #562
+
+				//  Check for and trigger event to display rank up message if applicable
+				if (Killer.IsSoldier() && Killer.CanRankUpSoldier() && !class'X2TacticalGameRulesetDataStructures'.static.TacticalOnlyGameMode())
+				{
+					Killer.GetUnitValue('RankUpMessage', RankUpValue);
+					if (RankUpValue.fValue == 0)
+					{
+						`XEVENTMGR.TriggerEvent('RankUpMessage', Killer, Killer, NewGameState);
+						Killer.SetUnitFloatValue('RankUpMessage', 1, eCleanup_BeginTactical);
+					}
+				}
+
+				//  All team mates that are alive and able to earn XP will be credited with a kill assist (regardless of their actions)
+				foreach `XCOMHISTORY.IterateByClassType(class'XComGameState_Unit', Iter)
+				{
+					if (Iter != Killer && Iter.ControllingPlayer.ObjectID == Killer.ControllingPlayer.ObjectID && Iter.CanEarnXp() && Iter.IsAlive())
+					{
+						KillAssistant = XComGameState_Unit(NewGameState.ModifyStateObject(Iter.Class, Iter.ObjectID));
+						KillAssistant.KillAssists.AddItem(objRef);
+						KillAssistant.KillAssistsCount += KillAssistXp;  // Issue #562: use mod-provided values if overridden
+
+						//  jbouscher: current desire is to only display the rank up message based on a full kill, commenting this out for now.
+						//  Check for and trigger event to display rank up message if applicable
+						//if (KillAssistant.IsSoldier() && KillAssistant.CanRankUpSoldier())
+						//{
+						//	RankUpValue.fValue = 0;
+						//	KillAssistant.GetUnitValue('RankUpMessage', RankUpValue);
+						//	if (RankUpValue.fValue == 0)
+						//	{
+						//		EventManager.TriggerEvent('RankUpMessage', KillAssistant, KillAssistant, NewGameState);
+						//		KillAssistant.SetUnitFloatValue('RankUpMessage', 1, eCleanup_BeginTactical);
+						//	}
+						//}
+					}
+				}
+
+				`TRIGGERXP('XpKillShot', Killer.GetReference(), GetReference(), NewGameState);
 			}
 
 			if (Killer != none && Killer.GetMyTemplate().bIsTurret && Killer.GetTeam() == eTeam_XCom && Killer.IsMindControlled())
@@ -6797,43 +6802,6 @@ protected function OnUnitDied(XComGameState NewGameState, Object CauseOfDeath, c
 		EventManager.TriggerEvent('WeaponKillType', AbilityStateObject, Killer);
 	}
 
-}
-
-// Start Issue #562
-//
-/// HL-Docs: feature:CanAwardKillXp; issue:562; tags:tactical
-/// Allows listeners to prevent a unit from gaining XP after killing a unit.
-/// One example use case is to cap the XP that can be gained for a mission
-/// when reinforcements make an appearance. In other words, this can be used to
-/// prevent farming of reinforcements for XP.
-///
-/// ```unrealscript
-/// EventID: CanAwardKillXp
-/// EventData: XComLWTuple {
-///     Data: [
-///       out bool CanAwardXp,
-///       in XCGS_Unit Killer
-///     ]
-/// }
-/// EventSource: KilledUnit (XCGS_Unit)
-/// NewGameState: no
-/// ```
-///
-function bool TriggerCanAwardKillXp(XComGameState_Unit Killer)
-{
-	local XComLWTuple Tuple;
-
-	Tuple = new class'XComLWTuple';
-	Tuple.Id = 'CanAwardKillXp';
-	Tuple.Data.Add(2);
-	Tuple.Data[0].Kind = XComLWTVBool;
-	Tuple.Data[0].b = true;
-	Tuple.Data[1].Kind = XComLWTVObject;
-	Tuple.Data[1].o = Killer;
-
-	`XEVENTMGR.TriggerEvent(Tuple.Id, Tuple, self);
-
-	return Tuple.Data[0].b;
 }
 
 /// HL-Docs: feature:OverrideKillXp; issue:562; tags:tactical
