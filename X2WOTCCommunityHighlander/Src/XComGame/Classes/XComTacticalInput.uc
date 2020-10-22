@@ -887,7 +887,7 @@ Begin:
 }
 
 // Start Issue #854
-/// HL-Docs: feature:OverrideCameraRotationAngle; issue:854; tags:tactical
+/// HL-Docs: feature:OverrideCameraRotationAngle; issue:854; tags:tactical,compatibility
 /// The 'OverrideCameraRotationAngle' event allows mods to override the angle
 /// the camera rotates when using the controller or the Q and E buttons. The
 /// event takes the following form, with mods changing the first value of the
@@ -901,11 +901,20 @@ Begin:
 ///       in int ActionMask
 ///     ]
 /// }
-/// EventSource: self (XComTacticalInput)
-/// NewGameState: no
+/// EventSource: none
+/// NewGameState: none
 /// ```
+///
+/// ## Compatibility
+///
+/// Several mods, typically ones that modify the behavior of the camera,
+/// override `XComTacticalInput`, thus breaking this highlander change.
+/// Since those camera mods mostly seem to override the camera rotation
+/// behavior, that's usually not a problem. Just be aware that overriding
+/// `XComTacticalInput` without including this highlander event may break
+/// other mods that rely on it.
 
-simulated function float GetCameraRotationAngle(int ActionMask)
+static function float GetCameraRotationAngle(int ActionMask)
 {
 	local XComLWTuple Tuple;
 	local float CameraRotationAngle;
@@ -913,15 +922,15 @@ simulated function float GetCameraRotationAngle(int ActionMask)
 	CameraRotationAngle = class'CHHelpers'.default.CameraRotationAngle == 0.0 ? 90.0 : class'CHHelpers'.default.CameraRotationAngle;
 
 	// Allow mods to override this default angle via an event
-    Tuple = new class'XComLWTuple';
-    Tuple.Id = 'OverrideCameraRotationAngle';
+	Tuple = new class'XComLWTuple';
+	Tuple.Id = 'OverrideCameraRotationAngle';
 	Tuple.Data.Add(2);
-    Tuple.Data[0].Kind = XComLWTVFloat;
-    Tuple.Data[0].f = CameraRotationAngle;
-    Tuple.Data[1].Kind = XComLWTVInt;
-    Tuple.Data[1].i = ActionMask;
+	Tuple.Data[0].Kind = XComLWTVFloat;
+	Tuple.Data[0].f = CameraRotationAngle;
+	Tuple.Data[1].Kind = XComLWTVInt;
+	Tuple.Data[1].i = ActionMask;
 
-    `XEVENTMGR.TriggerEvent('OverrideCameraRotationAngle', Tuple, self);
+	`XEVENTMGR.TriggerEvent(Tuple.Id, Tuple);
 
 	return Tuple.Data[0].f;
 }
