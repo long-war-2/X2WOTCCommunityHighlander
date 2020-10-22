@@ -181,6 +181,11 @@ var config array<name> ValidReserveAPForUnitFlag;
 /// This is because the base game hard codes the ability name used for the
 /// controller's R3 button, which is bad if a mod (like LWOTC) replaces
 /// PlaceEvacZone with a different ability.
+///
+/// Note that this variable only affects the input system. If you want to
+/// replace the ability itself, you will still need to do the hard work of
+/// creating the new ability, giving it to soldiers, handling evac zone
+/// destruction, etc.
 var config name PlaceEvacZoneAbilityName;
 // End Issue #855
 
