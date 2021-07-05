@@ -259,10 +259,31 @@ struct ShouldDisplayMultiSlotItemInTacticalStruct
 
 var protectedwrite array<ShouldDisplayMultiSlotItemInStrategyStruct> ShouldDisplayMultiSlotItemInStrategyCallbacks;
 var protectedwrite array<ShouldDisplayMultiSlotItemInTacticalStruct> ShouldDisplayMultiSlotItemInTacticalCallbacks;
+// End Issue #885
 
+// Start Issue #749
+struct OverrideAbilityIconColorsStruct
+{
+	var delegate<OverrideAbilityIconColorsDelegate> OverrideAbilityIconColorsFn;
+	var int Priority;
+
+	structdefaultproperties
+	{
+		Priority = 50
+	}
+};
+
+var protectedwrite array<OverrideAbilityIconColorsStruct> OverrideAbilityIconColorsCallbacks;
+// End Issue #749
+
+// Start Issue #885
 delegate EHLDelegateReturn ShouldDisplayMultiSlotItemInStrategyDelegate(XComGameState_Unit UnitState, XComGameState_Item ItemState, out int bDisplayItem, XComUnitPawn UnitPawn, optional XComGameState CheckGameState);
 delegate EHLDelegateReturn ShouldDisplayMultiSlotItemInTacticalDelegate(XComGameState_Unit UnitState, XComGameState_Item ItemState, out int bDisplayItem, XGUnit UnitVisualizer, optional XComGameState CheckGameState);
 // End Issue #885
+
+// Start Issue #749
+delegate EHLDelegateReturn OverrideAbilityIconColorsDelegate(XComGameState_Ability AbilityState, bool IsObjectiveAbility, out string BackgroundColor, out string ForegroundColor);
+// End Issue #749
 
 // Start Issue #123
 simulated static function RebuildPerkContentCache() {
@@ -856,6 +877,80 @@ static function CHHelpers GetCDO()
 	return CHHelpers(class'XComEngine'.static.GetClassDefaultObjectByName(default.Class.Name));
 }
 // End Issue #885
+
+// Start Issue #749
+simulated function bool AddOverrideAbilityIconColorsCallback(delegate<OverrideAbilityIconColorsDelegate> OverrideAbilityIconColorsFn, optional int Priority = 50)
+{
+	local OverrideAbilityIconColorsStruct OverrideAbilityIconColorsCallback;
+	local int i, PriorityIndex;
+	local bool bPriorityIndexFound;
+
+	if (OverrideAbilityIconColorsFn == none)
+	{
+		return false;
+	}
+
+	for (i = 0; i < OverrideAbilityIconColorsCallbacks.Length; i++)
+	{
+		// Do not allow registering the same delegate more than once.
+		if (OverrideAbilityIconColorsCallbacks[i].OverrideAbilityIconColorsFn == OverrideAbilityIconColorsFn)
+		{
+			return false;
+		}
+
+		// Remember the Index of the first member of the array of callbacks whose Priority is lower than the priority of the new Callback we intend to add.
+		// Thus, callbacks with higher Priority will be called first. Callbacks with the same priority will be called in order of their addition.
+		if (Priority > OverrideAbilityIconColorsCallbacks[i].Priority && !bPriorityIndexFound)
+		{
+			PriorityIndex = i;
+
+			//	Need to assign the priority index only once so that highest priority delegates do not fall through to become 2nd last member of the array.
+			//	Keep cycling through the array so that the previous check for duplicate delegates can run for every currently registered delegate.
+			bPriorityIndexFound = true;
+		}
+	}
+
+	OverrideAbilityIconColorsCallback.Priority = Priority;
+	OverrideAbilityIconColorsCallback.OverrideAbilityIconColorsFn = OverrideAbilityIconColorsFn;
+
+	OverrideAbilityIconColorsCallbacks.InsertItem(PriorityIndex, OverrideAbilityIconColorsCallback);
+
+	return true;
+}
+
+// Return true if the Callback was successfully deleted, return false otherwise.
+simulated function bool RemoveOverrideAbilityIconColorsCallback(delegate<OverrideAbilityIconColorsDelegate> OverrideAbilityIconColorsFn)
+{
+	local int i;
+
+	for (i = OverrideAbilityIconColorsCallbacks.Length - 1; i >= 0; i--)
+	{
+		if (OverrideAbilityIconColorsCallbacks[i].OverrideAbilityIconColorsFn == OverrideAbilityIconColorsFn)
+		{
+			OverrideAbilityIconColorsCallbacks.Remove(i, 1);
+			return true;
+		}
+	}
+	return false;
+}
+
+// Called from XComUnitPawn to determine whether a visualizer for this item should be created to make the item visible on the cosmetic pawn in the Armory and Squad Select.
+simulated function ProcessAbilityIconColorOverrides(XComGameState_Ability AbilityState, bool IsObjectiveAbility, out string BackgroundColor, out string ForegroundColor)
+{
+	local delegate<OverrideAbilityIconColorsDelegate> OverrideAbilityIconColorsFn;
+	local int i;
+
+	for (i = 0; i < OverrideAbilityIconColorsCallbacks.Length; i++)
+	{	
+		OverrideAbilityIconColorsFn = OverrideAbilityIconColorsCallbacks[i].OverrideAbilityIconColorsFn;
+
+		if (OverrideAbilityIconColorsFn(AbilityState, IsObjectiveAbility, BackgroundColor, ForegroundColor) == EHLDR_InterruptDelegates)
+		{
+			break;
+		}
+	}
+}
+// End Issue #749
 
 // Start Issue #855
 static function name GetPlaceEvacZoneAbilityName()

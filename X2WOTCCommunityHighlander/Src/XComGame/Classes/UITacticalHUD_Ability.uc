@@ -24,6 +24,16 @@ var X2AbilityTemplate AbilityTemplate;    //Holds TEMPLATE data for the ability 
 
 var UIIcon Icon;
 
+// Start Issue #749
+var array< delegate<OverrideAbilityIconColors> > OverrideAbilityIconColorsFns;
+
+delegate bool OverrideAbilityIconColors(
+	XComGameState_Ability AbilityState,
+	bool IsObjectiveAbility,
+	out string BackgroundColor,
+	out string ForegroundColor);
+// End Issue #749
+
 simulated function UIPanel InitAbilityItem(optional name InitName)
 {
 	InitPanel(InitName);
@@ -145,7 +155,6 @@ simulated function UpdateData(int NewIndex, const out AvailableAction AvailableA
 		if (IsObjectiveAbility || AbilityTemplate.AbilityIconColor != "")
 		{
 			BackgroundColor = IsObjectiveAbility ? class'UIUtilities_Colors'.const.OBJECTIVEICON_HTML_COLOR : AbilityTemplate.AbilityIconColor;
-			TriggerOverrideAbilityIconColor(AbilityState, IsObjectiveAbility, BackgroundColor);
 		}
 		else
 		{
@@ -194,39 +203,6 @@ simulated function UpdateData(int NewIndex, const out AvailableAction AvailableA
 	RefreshShine();
 }
 
-// Start Issue #400
-/// HL-Docs: feature:OverrideAbilityIconColor; issue:400; tags:tactical
-/// DEPRECATED - The `OverrideAbilityIconColor` event allows mods to override icon color
-/// for objective abilities or abilities that have `AbilityIconColor` property 
-/// set in their templates.
-/// 
-/// This event has been deprecated and should no longer be used. It is kept for
-/// backwards compatibility. Use [OverrideAbilityIconColorImproved](../tactical/OverrideAbilityIconColorImproved.md) instead.
-///
-/// ```event
-/// EventID: OverrideAbilityIconColor,
-/// EventData: [in bool IsObjective, inout string BackgroundColor],
-/// EventSource: XComGameState_Ability (AbilityState),
-/// NewGameState: none
-/// ```
-static final function TriggerOverrideAbilityIconColor(XComGameState_Ability Ability, bool IsObjective, out string IconColor)
-{
-	local XComLWTuple OverrideTuple;
-
-	OverrideTuple = new class'XComLWTuple';
-	OverrideTuple.Id = 'OverrideAbilityIconColor';
-	OverrideTuple.Data.Add(2);
-	OverrideTuple.Data[0].kind = XComLWTVBool;
-	OverrideTuple.Data[0].b = IsObjective;  // the color coming back
-	OverrideTuple.Data[1].kind = XComLWTVString;
-	OverrideTuple.Data[1].s = IconColor;  // the color coming back
-
-	`XEVENTMGR.TriggerEvent('OverrideAbilityIconColor', OverrideTuple, Ability);
-
-	IconColor = OverrideTuple.Data[1].s;
-}
-// End Issue #400
-
 // Start Issue #749
 /// HL-Docs: feature:OverrideAbilityIconColorImproved; issue:749; tags:tactical,compatibility
 /// The `OverrideAbilityIconColorImproved` event allows mods to override background and foreground 
@@ -250,24 +226,17 @@ static final function TriggerOverrideAbilityIconColor(XComGameState_Ability Abil
 /// This event takes precedence over the deprecated event [OverrideAbilityIconColor](../tactical/OverrideAbilityIconColor.md),
 /// so any listener that changes ability icon colors will always overwrite any
 /// changes made by listeners of the deprecated event.
-static final function TriggerOverrideAbilityIconColorImproved(XComGameState_Ability Ability, bool IsObjective, out string BackgroundColor, out string ForegroundColor)
+final function TriggerOverrideAbilityIconColorImproved(XComGameState_Ability Ability, bool IsObjective, out string BackgroundColor, out string ForegroundColor)
 {
-	local XComLWTuple OverrideTuple;
+	local CHHelpers CHHelpersObj;
 
-	OverrideTuple = new class'XComLWTuple';
-	OverrideTuple.Id = 'OverrideAbilityIconColorImproved';
-	OverrideTuple.Data.Add(3);
-	OverrideTuple.Data[0].kind = XComLWTVBool;
-	OverrideTuple.Data[0].b = IsObjective;  
-	OverrideTuple.Data[1].kind = XComLWTVString;
-	OverrideTuple.Data[1].s = BackgroundColor; 
-	OverrideTuple.Data[2].kind = XComLWTVString;
-	OverrideTuple.Data[2].s = ForegroundColor;
+	CHHelpersObj = class'CHHelpers'.static.GetCDO();
+	if (CHHelpersObj == none)
+	{
+		return;
+	}
 
-	`XEVENTMGR.TriggerEvent('OverrideAbilityIconColorImproved', OverrideTuple, Ability);
-
-	BackgroundColor = OverrideTuple.Data[1].s;
-	ForegroundColor = OverrideTuple.Data[2].s;
+	CHHelpersObj.ProcessAbilityIconColorOverrides(Ability, IsObjective, BackgroundColor, ForegroundColor);
 }
 // End Issue #749
 
